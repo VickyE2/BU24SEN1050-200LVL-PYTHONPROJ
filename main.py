@@ -175,7 +175,7 @@ def main(should_intro: bool = True):
         logger.info("MAIN", "Type exit at any input to stop the program.")
     else:
         print("")
-        answer = logger.input("MAIN", "Would like to calculate another person income tax [(Y, YES, y, yes, Yes) / (N, NO, n, no, No)")
+        answer = logger.input("MAIN", "Would like to calculate another person income tax [(Y, YES, y, yes, Yes) / (N, NO, n, no, No)]")
         if answer.lower() != "y" and answer.lower() != "yes" and answer.lower() != "no" and answer.lower() != "n":
             logger.warning_cleaning("MAIN", f"`{answer}` isn't an option so I'll take that as a yes...")
         elif not (answer.lower() == "yes" or answer.lower() == "y"):
