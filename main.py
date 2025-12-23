@@ -105,7 +105,7 @@ def calculate_income(status: FillingStatus, taxable_income: int):
     logger.info("CALC", f"Calculating tax using filling status: "
                         f"{Color.YELLOW.color}{status.name}{Color.RESET.color} "
                         f"{Color.CYAN.color}and taxable income:{Color.RESET.color} "
-                        f"{Color.YELLOW.color}{taxable_income}{Color.RESET.color}")
+                        f"{Color.YELLOW.color}${taxable_income:,}{Color.RESET.color}")
     tax_percentage: int = None
     match status:
         case FillingStatus.SINGLE:
