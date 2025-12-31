@@ -93,7 +93,7 @@ class FillingStatus(Enum):
     HEAD_OF_THE_HOUSE = 3
 
 
-def calculate_income(status: FillingStatus, taxable_income: int):
+def calculate_income(status: FillingStatus, taxable_income: float):
     """
     The calculate method I used to calculate tax from taxable income based on the taxable_income
         status:
@@ -106,7 +106,7 @@ def calculate_income(status: FillingStatus, taxable_income: int):
                         f"{Color.YELLOW.color}{status.name}{Color.RESET.color} "
                         f"{Color.CYAN.color}and taxable income:{Color.RESET.color} "
                         f"{Color.YELLOW.color}${taxable_income:,}{Color.RESET.color}")
-    tax_percentage: int = None
+    tax_percentage: float = None
     match status:
         case FillingStatus.SINGLE:
             # didn't know this format [x < var < y] existed, my ide (pycharm) showed it to me
@@ -205,7 +205,7 @@ def main(should_intro: bool = True):
             break
     logger.info_cleaning("MAIN", f"You chose status `{filling_status.name}`")
     not_int_taxable_income = (
-        logger.input("MAIN", f"What is your taxable income (should be an integer no commas or all-that)"))
+        logger.input("MAIN", f"What is your taxable income (should be an integer or float no commas or all-that)"))
     if not_int_taxable_income.lower() == "exit":
         logger.info_cleaning("MAIN", "Exiting project...")
         return
@@ -214,16 +214,15 @@ def main(should_intro: bool = True):
         logger.error_cleaning("MAIN", f"`{not_int_taxable_income}` is not a valid integer", 2)
         not_int_taxable_income = (
             logger.input("MAIN", f"What is your taxable income (should be an integer no commas or all-that)"))
-    while int(not_int_taxable_income) < 0:
+    while float(not_int_taxable_income) < 0:
         logger.error_cleaning("MAIN", f"`{not_int_taxable_income}` is a negative integer, Income cannot be negative.",
                               2)
         not_int_taxable_income = (
             logger.input("MAIN", f"What is your taxable income (should be an integer no commas or all-that)"))
-    taxable_income = int(not_int_taxable_income)
+    taxable_income = float(not_int_taxable_income)
     # found out how to format integers
     logger.info_cleaning("MAIN", f"Your chosen taxable income is `${taxable_income:,}`")
     calculate_income(filling_status, taxable_income)
-
 
 if __name__ == "__main__":
     main()
