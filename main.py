@@ -1,6 +1,8 @@
 import sys
 from enum import Enum
 
+soc = "$" # symbol of currency hehe
+
 # I found this online from a reddit thread..
 def found_online_input(prompt: str) -> str:
     print(f"{prompt}", end="")
@@ -105,7 +107,7 @@ def calculate_income(status: FillingStatus, taxable_income: float):
     logger.info("CALC", f"Calculating tax using filling status: "
                         f"{Color.YELLOW.color}{status.name}{Color.RESET.color} "
                         f"{Color.CYAN.color}and taxable income:{Color.RESET.color} "
-                        f"{Color.YELLOW.color}${taxable_income:,}{Color.RESET.color}")
+                        f"{Color.YELLOW.color}{soc}{taxable_income:,}{Color.RESET.color}")
     tax_percentage: float = None
     match status:
         case FillingStatus.SINGLE:
@@ -164,9 +166,21 @@ def calculate_income(status: FillingStatus, taxable_income: float):
 
     logger.debug("CALC", f"Using tax percentage {tax_percentage}")
     personal_income_tax : float = (tax_percentage / 100) * taxable_income
-    logger.info("CALC", f"Your personal income tax is: `${personal_income_tax:,}`")
+    logger.info("CALC", f"Your personal income tax is: `{soc}{personal_income_tax:,}`")
     main(False)
 
+def verify_filling_status(unformatted_filling_status: str):
+    unformatted_filling_status = unformatted_filling_status.strip() # to remove spaces in-front this causes issues when i tested again
+    if unformatted_filling_status.isdigit():
+        try:
+            return FillingStatus(int(unformatted_filling_status))
+        except ValueError:
+            while unformatted_filling_status not in [m.name for m in FillingStatus]:
+                return None
+    else:
+        while unformatted_filling_status not in [m.name for m in FillingStatus]:
+            return None
+        return FillingStatus[unformatted_filling_status]
 
 def main(should_intro: bool = True):
     global logger
@@ -179,6 +193,7 @@ def main(should_intro: bool = True):
         if answer.lower() != "y" and answer.lower() != "yes" and answer.lower() != "no" and answer.lower() != "n":
             logger.warning_cleaning("MAIN", f"`{answer}` isn't an option so I'll take that as a yes...")
         elif not (answer.lower() == "yes" or answer.lower() == "y"):
+            logger.info_cleaning("MAIN", "Exiting project...")
             return
     logger.info("MAIN", "-" * len("Type exit at any input to stop the program."))
     unformatted_filling_status = logger.input("MAIN", f"What is your filling status. Options (You can use the number of the word): {[m.name + " - " + str(m.value) for m in FillingStatus]}")
@@ -187,41 +202,44 @@ def main(should_intro: bool = True):
         logger.info_cleaning("MAIN", "Exiting project...")
         return
     while True:
-        if unformatted_filling_status.isdigit():
-            try:
-                filling_status = FillingStatus(int(unformatted_filling_status))
-                break
-            except ValueError:
-                while unformatted_filling_status not in [m.name for m in FillingStatus]:
-                    logger.error_cleaning("MAIN", f"`{unformatted_filling_status}` is not a valid filling status", 2)
-                    unformatted_filling_status = logger.input("MAIN",
-                                                  f"What is your filling status. Options: {[m.name + " - " + str(m.value) for m in FillingStatus]}")
-        else:
-            while unformatted_filling_status not in [m.name for m in FillingStatus]:
-                logger.error_cleaning("MAIN", f"`{unformatted_filling_status}` is not a valid filling status", 2)
-                unformatted_filling_status = logger.input("MAIN",
-                                              f"What is your filling status. Options: {[m.name + " - " + str(m.value) for m in FillingStatus]}")
-            filling_status = FillingStatus[unformatted_filling_status]
+        if unformatted_filling_status.lower() == "exit":
+            logger.info_cleaning("MAIN", "Exiting project...")
+            return
+        filling_status = verify_filling_status(unformatted_filling_status)
+        if filling_status is not None:
             break
+        logger.error_cleaning("MAIN", f"`{unformatted_filling_status}` is not a valid filling status", 2)
+        unformatted_filling_status = logger.input("MAIN", f"What is your filling status. Options (You can use the number of the word): {[m.name + " - " + str(m.value) for m in FillingStatus]}")
     logger.info_cleaning("MAIN", f"You chose status `{filling_status.name}`")
     not_int_taxable_income = (
         logger.input("MAIN", f"What is your taxable income (should be an integer or float no commas or all-that)"))
-    if not_int_taxable_income.lower() == "exit":
-        logger.info_cleaning("MAIN", "Exiting project...")
-        return
-    # I found out isdigit existed from geeks for geeks
-    while not not_int_taxable_income.isdigit():
-        logger.error_cleaning("MAIN", f"`{not_int_taxable_income}` is not a valid integer", 2)
-        not_int_taxable_income = (
-            logger.input("MAIN", f"What is your taxable income (should be an integer no commas or all-that)"))
-    while float(not_int_taxable_income) < 0:
-        logger.error_cleaning("MAIN", f"`{not_int_taxable_income}` is a negative integer, Income cannot be negative.",
-                              2)
-        not_int_taxable_income = (
-            logger.input("MAIN", f"What is your taxable income (should be an integer no commas or all-that)"))
+    dont_clean = False
+    while True:
+        if not_int_taxable_income.lower() == "exit":
+            logger.info_cleaning("MAIN", "Exiting project...")
+            return
+        if not_int_taxable_income[1:].isdigit() and not not_int_taxable_income.isdigit():
+            original = not_int_taxable_income
+            bad_char = original[0]
+            logger.warning_cleaning("MAIN", f"I clearly stated to only use numbers but you still added `{bad_char}` to the front of the string {original}... ill let it slide this time...", 2)
+            dont_clean = True
+            global soc
+            soc = bad_char
+            not_int_taxable_income = not_int_taxable_income[1:]
+        if not not_int_taxable_income.isdigit():
+            logger.error_cleaning("MAIN", f"`{not_int_taxable_income}` is not a valid number", 2)
+            not_int_taxable_income = (
+                logger.input("MAIN", f"What is your taxable income (should be an integer no commas or all-that)"))
+        elif float(not_int_taxable_income) < 0:
+            logger.error_cleaning("MAIN", f"`{not_int_taxable_income}` is a negative number, Income cannot be negative.",
+                                  2)
+            not_int_taxable_income = (
+                logger.input("MAIN", f"What is your taxable income (should be an integer no commas or all-that)"))
+        else:
+            break
     taxable_income = float(not_int_taxable_income)
     # found out how to format integers
-    logger.info_cleaning("MAIN", f"Your chosen taxable income is `${taxable_income:,}`")
+    logger.info_cleaning("MAIN", f"Your chosen taxable income is `{soc}{taxable_income:,}`", 0 if dont_clean else 1)
     calculate_income(filling_status, taxable_income)
 
 if __name__ == "__main__":
