@@ -96,6 +96,7 @@ class FillingStatus(Enum):
 
 
 def calculate_income(status: FillingStatus, taxable_income: float):
+    global soc
     """
     The calculate method I used to calculate tax from taxable income based on the taxable_income
         status:
@@ -184,6 +185,7 @@ def verify_filling_status(unformatted_filling_status: str):
 
 def main(should_intro: bool = True):
     global logger
+    global soc
     if should_intro:
         logger.info("MAIN", "  Welcome to BU24SEN1050's Tax Calculator  ")
         logger.info("MAIN", "Type exit at any input to stop the program.")
